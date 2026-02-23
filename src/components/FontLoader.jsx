@@ -1,6 +1,6 @@
 const FontLoader = () => (
   <style>{`
-    @import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Source+Sans+3:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Ubuntu:wght@300;400;500;700&family=Open+Sans:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
 
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -29,8 +29,8 @@ const FontLoader = () => (
       --insufficient: #e67e22;
       --highly-insufficient: #e74c3c;
       --critical: #c0392b;
-      --font-serif: 'DM Serif Display', Georgia, serif;
-      --font-sans:  'Source Sans 3', system-ui, sans-serif;
+      --font-serif: 'Ubuntu', -apple-system, sans-serif;
+      --font-sans:  'Open Sans', system-ui, sans-serif;
       --font-mono:  'JetBrains Mono', monospace;
     }
 

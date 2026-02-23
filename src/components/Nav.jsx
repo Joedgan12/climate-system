@@ -68,13 +68,13 @@ const Nav = () => {
                         border: `1.5px solid ${scrolled ? "var(--teal-700)" : "rgba(255,255,255,0.5)"}`,
                         color: scrolled ? "var(--teal-700)" : "white",
                         fontFamily: "var(--font-sans)", fontSize: 13, fontWeight: 500,
-                        padding: "7px 16px", borderRadius: 4, cursor: "pointer",
+                        padding: "8px 20px", borderRadius: 30, cursor: "pointer",
                     }}>Data Explorer</button>
                     <button style={{
                         background: scrolled ? "var(--teal-700)" : "white",
                         border: "none", color: scrolled ? "white" : "var(--teal-900)",
                         fontFamily: "var(--font-sans)", fontSize: 13, fontWeight: 600,
-                        padding: "7px 16px", borderRadius: 4, cursor: "pointer",
+                        padding: "8px 20px", borderRadius: 30, cursor: "pointer",
                     }}>API Access</button>
                 </div>
             </div>

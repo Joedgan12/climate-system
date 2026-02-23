@@ -66,14 +66,14 @@ const APIPage = () => {
                                 <button key={ep.path} onClick={() => { setActiveEndpoint(i); setShowResponse(false); }} style={{
                                     background: activeEndpoint === i ? "var(--teal-900)" : "white",
                                     border: `1px solid ${activeEndpoint === i ? "var(--teal-900)" : "var(--gray-200)"}`,
-                                    borderRadius: 8, padding: "12px 16px", textAlign: "left", cursor: "pointer", transition: "all 0.2s",
+                                    borderRadius: 16, padding: "14px 18px", textAlign: "left", cursor: "pointer", transition: "all 0.2s",
                                 }}>
                                     <div style={{ display: "flex", gap: 8, alignItems: "center", marginBottom: 4 }}>
                                         <span style={{
                                             fontFamily: "var(--font-mono)", fontSize: 10, fontWeight: 700,
                                             color: ep.method === "POST" ? (activeEndpoint === i ? "#ffa07a" : "var(--orange)") : (activeEndpoint === i ? "var(--teal-400)" : "var(--teal-700)"),
                                             background: activeEndpoint === i ? "rgba(255,255,255,0.1)" : `${ep.method === "POST" ? "#fff0e8" : "var(--teal-50)"}`,
-                                            padding: "1px 6px", borderRadius: 2,
+                                            padding: "1px 8px", borderRadius: 10,
                                         }}>{ep.method}</span>
                                         <span style={{ fontFamily: "var(--font-mono)", fontSize: 12, color: activeEndpoint === i ? "white" : "var(--gray-700)" }}>{ep.path}</span>
                                     </div>
@@ -81,13 +81,13 @@ const APIPage = () => {
                                 </button>
                             ))}
                         </div>
-                        <div style={{ marginTop: 28, padding: "16px", background: "var(--teal-50)", border: "1px solid var(--teal-200)", borderRadius: 8 }}>
+                        <div style={{ marginTop: 28, padding: "20px", background: "var(--teal-50)", border: "1px solid var(--teal-200)", borderRadius: 16 }}>
                             <div style={{ fontSize: 13, color: "var(--teal-800)", lineHeight: 1.6 }}>
                                 <strong>What's missing elsewhere:</strong> Most climate institutions still distribute raw files via FTP. No API versioning. No uncertainty metadata. No provenance IDs.
                             </div>
                         </div>
                     </div>
-                    <div style={{ background: "var(--gray-900)", borderRadius: 12, overflow: "hidden" }}>
+                    <div style={{ background: "var(--gray-900)", borderRadius: 24, overflow: "hidden" }}>
                         <div style={{ background: "#1a1a1a", padding: "12px 20px", display: "flex", alignItems: "center", gap: 8, borderBottom: "1px solid #2a2a2a" }}>
                             {["#ff5f56", "#ffbd2e", "#27c93f"].map(c => (
                                 <div key={c} style={{ width: 12, height: 12, borderRadius: "50%", background: c }} />
@@ -113,7 +113,7 @@ const APIPage = () => {
                             </div>
                             <button onClick={executeRequest} disabled={loading} style={{
                                 width: "100%", background: loading ? "var(--teal-800)" : "var(--teal-600)", color: "white", border: "none",
-                                borderRadius: 6, padding: "10px", fontFamily: "var(--font-sans)", fontWeight: 600,
+                                borderRadius: 30, padding: "12px", fontFamily: "var(--font-sans)", fontWeight: 600,
                                 fontSize: 14, cursor: loading ? "wait" : "pointer", marginBottom: 20, transition: "background 0.2s",
                             }}>{loading ? "Executing Request..." : "▶ Execute Request"}</button>
 
@@ -123,7 +123,7 @@ const APIPage = () => {
                                         <span>Response</span>
                                         <span style={{ color: "#27c93f" }}>200 OK · {executeTime}ms</span>
                                     </div>
-                                    <div style={{ background: "#111", borderRadius: 6, padding: 16 }}>
+                                    <div style={{ background: "#111", borderRadius: 12, padding: 16 }}>
                                         {responsePayload.split("\n").map((line, i) => {
                                             const isKey = line.includes('"') && line.includes(':');
                                             const isNum = line.match(/: [\d.]+,?$/);

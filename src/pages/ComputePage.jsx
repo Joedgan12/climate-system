@@ -29,7 +29,7 @@ const ComputePage = () => {
                         <div style={{
                             marginTop: 24, padding: "14px 18px",
                             background: "rgba(243,156,18,0.08)", border: "1px solid rgba(243,156,18,0.3)",
-                            borderLeft: "4px solid var(--amber)", borderRadius: "0 6px 6px 0",
+                            borderLeft: "4px solid var(--amber)", borderRadius: 16,
                         }}>
                             <div style={{ fontSize: 12, fontWeight: 600, color: "var(--amber)", marginBottom: 4, textTransform: "uppercase", letterSpacing: "0.06em" }}>Engineering note</div>
                             <div style={{ fontSize: 13, color: "var(--gray-700)", lineHeight: 1.6 }}>
@@ -43,7 +43,7 @@ const ComputePage = () => {
                             { partition: "AI-GPU", used: 3712, total: 4096, color: "var(--teal-500)", type: "Kubernetes · NVLink" },
                             { partition: "POSTPROC", used: 2048, total: 4096, color: "var(--teal-400)", type: "Kubernetes · 25GbE" },
                         ].map(p => (
-                            <div key={p.partition} style={{ background: "white", border: "1px solid var(--gray-200)", borderRadius: 8, padding: 18 }}>
+                            <div key={p.partition} style={{ background: "white", border: "1px solid var(--gray-200)", borderRadius: 16, padding: 20 }}>
                                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
                                     <div>
                                         <span style={{ fontSize: 14, fontWeight: 600, color: "var(--gray-900)" }}>{p.partition}</span>
@@ -60,7 +60,7 @@ const ComputePage = () => {
                     </div>
                 </div>
 
-                <div style={{ background: "white", border: "1px solid var(--gray-200)", borderRadius: 10, overflow: "hidden" }}>
+                <div style={{ background: "white", border: "1px solid var(--gray-200)", borderRadius: 24, overflow: "hidden" }}>
                     <div style={{ padding: "16px 24px", background: "var(--teal-900)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                         <span style={{ fontFamily: "var(--font-sans)", fontSize: 14, fontWeight: 600, color: "white" }}>Active Job Queue</span>
                         <span style={{ fontFamily: "var(--font-mono)", fontSize: 11, color: "rgba(255,255,255,0.5)" }}>SLURM 23.11 · Updated live</span>
@@ -88,7 +88,7 @@ const ComputePage = () => {
                                             fontSize: 11, fontWeight: 600,
                                             background: j.type === "Physics" ? "var(--teal-100)" : j.type === "AI" ? "#f0eaff" : "var(--gray-100)",
                                             color: j.type === "Physics" ? "var(--teal-700)" : j.type === "AI" ? "#6b4caf" : "var(--gray-600)",
-                                            padding: "2px 8px", borderRadius: 3,
+                                            padding: "2px 8px", borderRadius: 10,
                                         }}>{j.type}</span>
                                     </td>
                                     <td style={{ padding: "12px 16px", fontFamily: "var(--font-mono)", fontSize: 12, color: "var(--gray-600)" }}>{j.cores}</td>

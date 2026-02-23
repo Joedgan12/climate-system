@@ -16,7 +16,7 @@ const RatingBadge = ({ rating, size = "md" }) => {
             background: r.bg,
             color: r.color,
             border: `1.5px solid ${r.color}`,
-            borderRadius: 2,
+            borderRadius: 30,
             fontFamily: "var(--font-sans)",
             fontWeight: 600,
             letterSpacing: "0.03em",

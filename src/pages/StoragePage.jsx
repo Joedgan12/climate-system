@@ -18,7 +18,7 @@ const StoragePage = () => (
                     { tier: "WARM", desc: "Recent reanalysis & model runs", size: "18.7 PB", cap: "50 PB", pct: 37, latency: "85ms p99", color: "var(--teal-600)", bg: "#f0fbf7" },
                     { tier: "COLD", desc: "Historical archive · Permanent", size: "340 PB", cap: "1 EB", pct: 33, latency: "4–12 hours", color: "var(--gray-600)", bg: "var(--gray-50)" },
                 ].map(t => (
-                    <div key={t.tier} style={{ background: t.bg, border: `1px solid ${t.color}22`, borderTop: `4px solid ${t.color}`, borderRadius: 10, padding: 28 }}>
+                    <div key={t.tier} style={{ background: t.bg, border: `1px solid ${t.color}22`, borderTop: `4px solid ${t.color}`, borderRadius: 20, padding: 28 }}>
                         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 20 }}>
                             <div>
                                 <div style={{ fontFamily: "var(--font-serif)", fontSize: 22, color: t.color, marginBottom: 4 }}>{t.tier}</div>
@@ -39,7 +39,7 @@ const StoragePage = () => (
                     </div>
                 ))}
             </div>
-            <div style={{ background: "var(--gray-50)", border: "1px solid var(--gray-200)", borderRadius: 10, padding: 32 }}>
+            <div style={{ background: "var(--gray-50)", border: "1px solid var(--gray-200)", borderRadius: 24, padding: 32 }}>
                 <h3 style={{ fontFamily: "var(--font-serif)", fontSize: 22, marginBottom: 20 }}>Format Compatibility</h3>
                 <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 12 }}>
                     {[
@@ -48,7 +48,7 @@ const StoragePage = () => (
                         { fmt: "GRIB2", status: "SUPPORTED", note: "Operational forecasting bridge (ECMWF)", rating: "almost" },
                         { fmt: "HDF5", status: "LEGACY", note: "Read-only, migration queue active", rating: "insufficient" },
                     ].map(f => (
-                        <div key={f.fmt} style={{ background: "white", border: "1px solid var(--gray-200)", borderRadius: 8, padding: 16 }}>
+                        <div key={f.fmt} style={{ background: "white", border: "1px solid var(--gray-200)", borderRadius: 16, padding: 16 }}>
                             <div style={{ fontFamily: "var(--font-mono)", fontSize: 14, fontWeight: 500, color: "var(--gray-900)", marginBottom: 8 }}>{f.fmt}</div>
                             <RatingBadge rating={f.rating} size="sm" />
                             <div style={{ fontSize: 12, color: "var(--gray-500)", marginTop: 10, lineHeight: 1.5 }}>{f.note}</div>

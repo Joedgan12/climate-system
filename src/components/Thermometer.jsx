@@ -106,6 +106,7 @@ const Thermometer = ({ height = 300 }) => {
     useEffect(() => {
         const fetchTemp = async () => {
             try {
+                // Ensure we use the full proxied path or direct IP to be safe
                 const res = await fetch('/api/thermometer');
                 const data = await res.json();
                 setCurrent(data.current);
@@ -122,11 +123,11 @@ const Thermometer = ({ height = 300 }) => {
         <div style={{ display: "flex", alignItems: "flex-end", gap: 24, height }}>
             {/* The 3D Canvas rendering the thermometer */}
             <div style={{ width: 140, height: "100%", position: "relative" }}>
-                <Canvas camera={{ position: [0, 0, 7], fov: 45 }}>
-                    <ambientLight intensity={1.5} />
-                    <directionalLight position={[5, 5, 5]} intensity={1.5} />
+                <Canvas camera={{ position: [0, 0, 8], fov: 40 }}>
+                    <ambientLight intensity={2} />
+                    <pointLight position={[10, 10, 10]} intensity={2} />
                     <Suspense fallback={null}>
-                        <Environment preset="city" />
+                        <Environment preset="night" />
                         <Thermometer3D currentTemp={current} minTemp={0} maxTemp={4} />
                     </Suspense>
                 </Canvas>
@@ -136,17 +137,17 @@ const Thermometer = ({ height = 300 }) => {
             <div style={{ flex: 1, height: "100%", position: "relative", minWidth: 100 }}>
                 <div style={{
                     position: "absolute",
-                    bottom: `${Math.max(10, Math.min(85, (current / 4) * 100))}%`, // Match the 3D scale height roughly
-                    left: -10, right: 0,
+                    bottom: `${Math.max(10, Math.min(85, (current / 4) * 100))}%`,
+                    left: -20, right: 0,
                     display: "flex", alignItems: "center", gap: 8,
                     transform: "translateY(50%)",
-                    transition: "bottom 1s linear"
+                    transition: "bottom 0.8s cubic-bezier(0.4, 0, 0.2, 1)"
                 }}>
-                    <div style={{ flex: 1, height: 1.5, background: "var(--teal-600)", opacity: 0.6 }} />
+                    <div style={{ flex: 1, height: 1.5, background: "var(--teal-400)", opacity: 0.8 }} />
                     <div style={{
-                        background: "var(--teal-800)", color: "white", fontFamily: "var(--font-mono)",
-                        fontSize: 22, fontWeight: 500, padding: "4px 12px", borderRadius: 4, whiteSpace: "nowrap",
-                        boxShadow: "0 4px 12px rgba(0,0,0,0.15)"
+                        background: "var(--teal-700)", color: "white", fontFamily: "var(--font-mono)",
+                        fontSize: 24, fontWeight: 600, padding: "6px 14px", borderRadius: 30, whiteSpace: "nowrap",
+                        boxShadow: "0 8px 32px rgba(0,0,0,0.3)", border: "1px solid rgba(255,255,255,0.1)"
                     }}>{current.toFixed(2)}°C</div>
                 </div>
             </div>

@@ -21,7 +21,7 @@ const Hero = () => (
                     <div className="animate-fadeUp stagger-1" style={{
                         display: "inline-flex", alignItems: "center", gap: 8,
                         background: "rgba(26,153,112,0.2)", border: "1px solid rgba(26,153,112,0.4)",
-                        borderRadius: 20, padding: "4px 14px", marginBottom: 28,
+                        borderRadius: 30, padding: "6px 16px", marginBottom: 28,
                     }}>
                         <span style={{ width: 6, height: 6, borderRadius: "50%", background: "var(--teal-400)", animation: "pulse 2s infinite" }} />
                         <span style={{ fontFamily: "var(--font-mono)", fontSize: 11, color: "var(--teal-400)", letterSpacing: "0.08em" }}>
@@ -46,19 +46,19 @@ const Hero = () => (
                         <button style={{
                             background: "var(--teal-600)", color: "white", border: "none",
                             fontFamily: "var(--font-sans)", fontWeight: 600, fontSize: 15,
-                            padding: "12px 28px", borderRadius: 4, cursor: "pointer", transition: "background 0.2s",
+                            padding: "12px 32px", borderRadius: 30, cursor: "pointer", transition: "background 0.2s",
                         }}>Explore Platform →</button>
                         <button style={{
                             background: "transparent", color: "rgba(255,255,255,0.85)",
                             border: "1.5px solid rgba(255,255,255,0.25)",
                             fontFamily: "var(--font-sans)", fontWeight: 500, fontSize: 15,
-                            padding: "12px 28px", borderRadius: 4, cursor: "pointer",
+                            padding: "12px 32px", borderRadius: 30, cursor: "pointer",
                         }}>Read the PRD</button>
                     </div>
 
                     <div className="animate-fadeUp stagger-5" style={{
                         display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 1,
-                        background: "rgba(255,255,255,0.06)", borderRadius: 8, overflow: "hidden",
+                        background: "rgba(255,255,255,0.06)", borderRadius: 16, overflow: "hidden",
                         border: "1px solid rgba(255,255,255,0.08)",
                     }}>
                         {[
@@ -80,7 +80,7 @@ const Hero = () => (
 
                 <div className="animate-fadeUp stagger-6" style={{
                     background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.1)",
-                    borderRadius: 12, padding: 32, backdropFilter: "blur(8px)",
+                    borderRadius: 24, padding: 32, backdropFilter: "blur(8px)",
                 }}>
                     <div style={{ fontFamily: "var(--font-sans)", fontSize: 12, color: "rgba(255,255,255,0.5)", marginBottom: 4, textTransform: "uppercase", letterSpacing: "0.08em" }}>
                         Projected warming
@@ -90,8 +90,8 @@ const Hero = () => (
                     </div>
                     <Thermometer current={2.7} height={240} />
                     <div style={{
-                        marginTop: 24, padding: "12px 16px",
-                        background: "rgba(192,57,43,0.15)", border: "1px solid rgba(192,57,43,0.3)", borderRadius: 6,
+                        marginTop: 24, padding: "16px 20px",
+                        background: "rgba(192,57,43,0.15)", border: "1px solid rgba(192,57,43,0.3)", borderRadius: 16,
                     }}>
                         <div style={{ fontFamily: "var(--font-mono)", fontSize: 11, color: "#e74c3c", marginBottom: 4 }}>CURRENT TRAJECTORY</div>
                         <div style={{ fontFamily: "var(--font-serif)", fontSize: 18, color: "white" }}>+2.7°C by 2100</div>

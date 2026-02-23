@@ -28,7 +28,7 @@ const IngestionPage = () => {
                             Nine live data sources feeding a Kafka-backed event-driven pipeline with real-time schema validation, physical constraint checking, and SHA-256 provenance fingerprinting. Every record is CMIP7-normalised before storage.
                         </p>
                     </div>
-                    <div style={{ background: "var(--gray-50)", border: "1px solid var(--gray-200)", borderRadius: 12, padding: 24 }}>
+                    <div style={{ background: "var(--gray-50)", border: "1px solid var(--gray-200)", borderRadius: 24, padding: 32 }}>
                         <div style={{ fontSize: 12, color: "var(--gray-400)", marginBottom: 16, fontFamily: "var(--font-mono)", textTransform: "uppercase", letterSpacing: "0.08em" }}>Pipeline flow</div>
                         {["INGEST → Kafka Raw", "VALIDATE → Schema + Physics", "NORMALISE → CMIP7 + CF-1.10", "FINGERPRINT → SHA-256", "ROUTE → Zarr Storage"].map((step, i, arr) => (
                             <div key={step} style={{ display: "flex", alignItems: "center" }}>
@@ -45,7 +45,7 @@ const IngestionPage = () => {
                                 <div style={{
                                     fontFamily: "var(--font-mono)", fontSize: 12, color: "var(--gray-700)",
                                     padding: "8px 12px", background: "white", border: "1px solid var(--gray-200)",
-                                    borderRadius: 6, flex: 1, marginBottom: i < arr.length - 1 ? 4 : 0,
+                                    borderRadius: 30, flex: 1, marginBottom: i < arr.length - 1 ? 4 : 0,
                                 }}>{step}</div>
                             </div>
                         ))}
@@ -59,7 +59,7 @@ const IngestionPage = () => {
                         {sources.map((s) => (
                             <div key={s.name} style={{
                                 background: "white", border: "1px solid var(--gray-200)",
-                                borderTop: `3px solid ${statusColors[s.status]}`, borderRadius: 8, padding: 20,
+                                borderTop: `4px solid ${statusColors[s.status]}`, borderRadius: 16, padding: 24,
                                 transition: "box-shadow 0.2s, transform 0.2s", cursor: "default",
                             }}
                                 onMouseEnter={e => { e.currentTarget.style.boxShadow = "0 8px 32px rgba(0,0,0,0.1)"; e.currentTarget.style.transform = "translateY(-2px)"; }}
@@ -88,7 +88,7 @@ const IngestionPage = () => {
                 )}
 
                 <div style={{
-                    marginTop: 32, background: "var(--teal-900)", borderRadius: 10, padding: "24px 32px",
+                    marginTop: 32, background: "var(--teal-900)", borderRadius: 24, padding: "32px 40px",
                     display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 32,
                 }}>
                     {[
