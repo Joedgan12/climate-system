@@ -11,18 +11,30 @@ import uuid
 from contextlib import asynccontextmanager
 from typing import AsyncGenerator
 
-import redis.asyncio as aioredis
+# optional dependencies stubbed for lightweight demo
+try:
+    import redis.asyncio as aioredis
+except ImportError:
+    aioredis = None
 import structlog
-from dask.distributed import Client as DaskClient
+try:
+    from dask.distributed import Client as DaskClient
+except ImportError:
+    DaskClient = None
 from fastapi import FastAPI, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
-from openlineage.client import OpenLineageClient
-from opentelemetry import trace
-from opentelemetry.exporter.otlp.proto.grpc.trace_exporter import OTLPSpanExporter
-from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
-from opentelemetry.sdk.trace import TracerProvider
-from opentelemetry.sdk.trace.export import BatchSpanProcessor
+# OpenLineage client used for provenance; optional for demo
+try:
+    from openlineage.client import OpenLineageClient
+except ImportError:
+    OpenLineageClient = None
+# opentelemetry imports removed for lightweight demo
+trace = None
+OTLPSpanExporter = None
+FastAPIInstrumentor = None
+TracerProvider = None
+BatchSpanProcessor = None
 
 from config.settings import get_settings
 from api.models.schemas import PCMIPError
@@ -45,14 +57,13 @@ log = structlog.get_logger()
 
 # ─── OPENTELEMETRY SETUP ──────────────────────────────────────────────────────
 def setup_tracing() -> None:
-    provider = TracerProvider()
-    exporter = OTLPSpanExporter(endpoint="http://otel-collector:4317", insecure=True)
-    provider.add_span_processor(BatchSpanProcessor(exporter))
-    trace.set_tracer_provider(provider)
+    # no-op tracing for demo
+    pass
 
 
 # ─── APPLICATION STATE (shared across requests via app.state) ─────────────────
 class AppState:
+    # if dependencies are missing, these remain None
     dask_client: DaskClient | None = None
     redis: aioredis.Redis | None = None
     lineage_client: OpenLineageClient | None = None
@@ -71,34 +82,41 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     """
     log.info("pcmip_api.startup", version=settings.app_version)
 
-    # Tracing
-    setup_tracing()
+    # Tracing (disabled in demo)
+    # setup_tracing()
 
-    # Dask
-    log.info("connecting_to_dask", scheduler=settings.dask_scheduler)
-    app_state.dask_client = await DaskClient(
-        settings.dask_scheduler,
-        asynchronous=True,
-        name="pcmip-api",
-        timeout=30,
-    )
-    log.info("dask_connected", workers=len(app_state.dask_client.scheduler_info()["workers"]))
+    # Dask & Redis connections are optional for demo; skip if packages absent
+    if DaskClient:
+        log.info("connecting_to_dask", scheduler=settings.dask_scheduler)
+        app_state.dask_client = await DaskClient(
+            settings.dask_scheduler,
+            asynchronous=True,
+            name="pcmip-api",
+            timeout=30,
+        )
+        log.info("dask_connected", workers=len(app_state.dask_client.scheduler_info()["workers"]))
+    else:
+        log.info("dask_not_available")
 
-    # Redis
-    log.info("connecting_to_redis", url=settings.redis_url)
-    app_state.redis = await aioredis.from_url(
-        settings.redis_url,
-        encoding="utf-8",
-        decode_responses=True,
-        max_connections=50,
-    )
-    await app_state.redis.ping()
-    log.info("redis_connected")
+    if aioredis:
+        log.info("connecting_to_redis", url=settings.redis_url)
+        app_state.redis = await aioredis.from_url(
+            settings.redis_url,
+            encoding="utf-8",
+            decode_responses=True,
+            max_connections=50,
+        )
+        await app_state.redis.ping()
+        log.info("redis_connected")
+    else:
+        log.info("redis_not_available")
 
-    # OpenLineage
-    if settings.lineage_enabled:
+    # OpenLineage (optional)
+    if settings.lineage_enabled and OpenLineageClient:
         app_state.lineage_client = OpenLineageClient(url=settings.marquez_url)
         log.info("lineage_client_connected", marquez=settings.marquez_url)
+    elif settings.lineage_enabled:
+        log.info("openlineage_not_installed")
 
     log.info("pcmip_api.ready")
     yield  # Application runs here
@@ -237,7 +255,7 @@ def create_app() -> FastAPI:
     app.include_router(dashboard.router, prefix="/api", tags=["Dashboard"])
 
     # ── OTEL INSTRUMENTATION ─────────────────────────────────────────────────
-    FastAPIInstrumentor.instrument_app(app)
+    # FastAPIInstrumentor.instrument_app(app)  # disabled
 
     return app
 

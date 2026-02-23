@@ -20,7 +20,7 @@ class Settings(BaseSettings):
     workers: int = 4
 
     # ── Kafka ─────────────────────────────────────────────────────────────────
-    kafka_brokers: str = Field(..., description="Comma-separated broker list")
+    kafka_brokers: str = Field("localhost:9092", description="Comma-separated broker list")  # demo default
     kafka_raw_topic: str = "raw.ingest"
     kafka_validated_topic: str = "validated.records"
     kafka_dead_letter_topic: str = "dead.letter"
@@ -32,7 +32,7 @@ class Settings(BaseSettings):
         return [b.strip() for b in self.kafka_brokers.split(",")]
 
     # ── Storage ───────────────────────────────────────────────────────────────
-    zarr_store_url: str = Field(..., description="s3://bucket or gs://bucket")
+    zarr_store_url: str = Field("memory://", description="s3://bucket or gs://bucket")  # demo default
     zarr_obs_prefix: str = "zarr/obs"
     zarr_models_prefix: str = "zarr/models"
     zarr_derived_prefix: str = "zarr/derived"
@@ -59,7 +59,7 @@ class Settings(BaseSettings):
     dask_query_timeout: int = 300          # seconds
 
     # ── Authentication ────────────────────────────────────────────────────────
-    api_key_salt: str = Field(..., description="HMAC salt for API key hashing")
+    api_key_salt: str = Field("demo-salt", description="HMAC salt for API key hashing")
     api_key_header: str = "X-API-Key"
     jwt_secret: str = Field(default="", description="For sovereign mTLS sessions")
 
