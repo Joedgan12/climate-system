@@ -107,7 +107,7 @@ const Thermometer = ({ height = 300 }) => {
         const fetchTemp = async () => {
             try {
                 // Ensure we use the full proxied path or direct IP to be safe
-                const res = await fetch('/api/thermometer');
+                const res = await fetch('/v2/status/thermometer');
                 const data = await res.json();
                 setCurrent(data.current);
             } catch (err) {

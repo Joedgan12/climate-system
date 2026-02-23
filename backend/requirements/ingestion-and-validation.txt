@@ -1,0 +1,38 @@
+# requirements/ingestion.txt
+# Python 3.12 — Kafka ingestion workers
+
+fastapi==0.115.6        # shared with api — keep in sync
+pydantic==2.10.2
+pydantic-settings==2.6.1
+confluent-kafka==2.6.0
+xarray==2024.11.0
+zarr==3.0.1
+s3fs==2024.10.0
+fsspec==2024.10.0
+numpy==2.1.3
+cfgrib==0.9.14.0       # GRIB2 parsing (ERA5, GFS, ICON)
+eccodes==2.38.3         # GRIB2 library (system dep: libeccodes)
+netCDF4==1.7.1.post2    # NetCDF-4 reading (GOES, ARGO, SENTINEL-6)
+h5py==3.12.1            # HDF5/HDF-EOS reading (MODIS)
+pyproj==3.7.0           # Coordinate transformation
+structlog==24.4.0
+prometheus-client==0.21.0
+openlineage-python==1.24.0
+
+# requirements/validation.txt
+# Python 3.12 — AI model validation service
+
+xarray==2024.11.0
+zarr==3.0.1
+dask[distributed]==2024.11.2
+s3fs==2024.10.0
+numpy==2.1.3
+scipy==1.14.1
+xclim==0.50.0          # Climate-specific bias correction and indices
+cf-xarray==0.9.5       # CF-compliant xarray accessors
+structlog==24.4.0
+pydantic==2.10.2
+pydantic-settings==2.6.1
+openlineage-python==1.24.0
+prometheus-client==0.21.0
+redis[hiredis]==5.2.1

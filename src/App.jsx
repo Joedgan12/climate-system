@@ -9,6 +9,7 @@ import StoragePage from "./pages/StoragePage";
 import APIPage from "./pages/APIPage";
 import ValidationPage from "./pages/ValidationPage";
 import GovernancePage from "./pages/GovernancePage";
+import TimeseriesPage from "./pages/TimeseriesPage";
 import Footer from "./components/Footer";
 
 const Layout = () => {
@@ -38,6 +39,7 @@ export default function App() {
             <Route path="compute" element={<ComputePage />} />
             <Route path="storage" element={<StoragePage />} />
             <Route path="api-gateway" element={<APIPage />} />
+            <Route path="timeseries" element={<TimeseriesPage />} />
             <Route path="validation" element={<ValidationPage />} />
             <Route path="governance" element={<GovernancePage />} />
           </Route>

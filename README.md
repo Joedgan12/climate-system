@@ -1,3 +1,15 @@
+# Climate System Application
+
+This repository contains a React + Vite front-end and a full-featured backend.
+
+The original simple Express mock server has been replaced with an advanced backend located in the `backend/` directory. See [`backend/README.md`](backend/README.md) for instructions on setting up and running the backend services.
+
+The front-end now includes an **API Explorer** under "API" which lets you type or edit parameters for the `/v2` endpoints, and a dedicated "Timeseries" page for `/v2/climate/timeseries` lookups. Live telemetry (ingestion/compute/validation) is streamed over WebSocket and displayed by the ticker at the top — a connection is made to `ws://localhost:8080` and the dashboard subscribes to health/events.
+
+Previously the file `backend/api/routers/dashboard.py` provided temporary stub data for the dashboard components. That file has now been deleted, and the front‑end pages fetch from `/v2/status/*` endpoints instead. When real services emit telemetry they should populate these `/v2/status` routes or new ones of your choosing.
+
+---
+
 # React + Vite
 
 This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.

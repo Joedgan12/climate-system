@@ -5,14 +5,22 @@ const IngestionPage = () => {
     const [sources, setSources] = useState([]);
     const [loading, setLoading] = useState(true);
 
+    const [error, setError] = useState(null);
     useEffect(() => {
-        fetch('/api/ingestion/sources')
-            .then(res => res.json())
+        fetch('/v2/status/ingestion/sources')
+            .then(res => {
+                if (!res.ok) throw new Error(`HTTP ${res.status}`);
+                return res.json();
+            })
             .then(data => {
                 setSources(data.sources);
                 setLoading(false);
             })
-            .catch(err => console.error(err));
+            .catch(err => {
+                console.error(err);
+                setError(err.message);
+                setLoading(false);
+            });
     }, []);
 
     const statusColors = { online: "var(--teal-600)", warning: "var(--amber)", error: "var(--red)" };
@@ -54,6 +62,8 @@ const IngestionPage = () => {
 
                 {loading ? (
                     <div style={{ padding: 48, textAlign: "center", color: "var(--gray-500)", fontFamily: "var(--font-mono)" }}>Loading sources from API...</div>
+                ) : error ? (
+                    <div style={{ padding: 48, textAlign: "center", color: "var(--red)", fontFamily: "var(--font-mono)" }}>Error: {error}</div>
                 ) : (
                     <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 16 }}>
                         {sources.map((s) => (

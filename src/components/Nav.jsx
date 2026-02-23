@@ -18,6 +18,7 @@ const Nav = () => {
         { name: "Compute", path: "/compute" },
         { name: "Storage", path: "/storage" },
         { name: "API", path: "/api-gateway" },
+        { name: "Timeseries", path: "/timeseries" },
         { name: "Validation", path: "/validation" },
         { name: "Governance", path: "/governance" }
     ];

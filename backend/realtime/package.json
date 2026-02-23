@@ -1,0 +1,23 @@
+{
+  "name": "pcmip-realtime",
+  "version": "1.0.0",
+  "description": "PCMIP real-time WebSocket server — Kafka and Prometheus bridge for dashboard telemetry",
+  "main": "server.js",
+  "engines": {
+    "node": ">=22.0.0"
+  },
+  "scripts": {
+    "start":   "node server.js",
+    "dev":     "node --watch server.js",
+    "test":    "node --test tests/",
+    "lint":    "eslint ."
+  },
+  "dependencies": {
+    "kafkajs":  "^2.2.4",
+    "ws":       "^8.18.0",
+    "winston":  "^3.17.0"
+  },
+  "devDependencies": {
+    "eslint":  "^9.16.0"
+  }
+}

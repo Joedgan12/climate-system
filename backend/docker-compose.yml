@@ -1,0 +1,213 @@
+version: "3.9"
+
+networks:
+  pcmip-internal:
+    driver: bridge
+  pcmip-external:
+    driver: bridge
+
+volumes:
+  minio-data:
+  redis-data:
+  marquez-db-data:
+  prometheus-data:
+  grafana-data:
+  kafka-data:
+
+services:
+
+  kafka:
+    image: confluentinc/cp-kafka:7.6.0
+    container_name: pcmip-kafka
+    networks: [pcmip-internal]
+    environment:
+      KAFKA_NODE_ID: 1
+      KAFKA_PROCESS_ROLES: "broker,controller"
+      KAFKA_CONTROLLER_QUORUM_VOTERS: "1@kafka:9093"
+      KAFKA_LISTENERS: "PLAINTEXT://0.0.0.0:9092,CONTROLLER://0.0.0.0:9093"
+      KAFKA_ADVERTISED_LISTENERS: "PLAINTEXT://kafka:9092"
+      KAFKA_CONTROLLER_LISTENER_NAMES: "CONTROLLER"
+      KAFKA_INTER_BROKER_LISTENER_NAME: "PLAINTEXT"
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "false"
+      CLUSTER_ID: "MkU3OEVBNTcwNTJENDM2Qk"
+    volumes:
+      - kafka-data:/var/lib/kafka/data
+    healthcheck:
+      test: ["CMD", "kafka-topics", "--bootstrap-server", "localhost:9092", "--list"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  schema-registry:
+    image: confluentinc/cp-schema-registry:7.6.0
+    container_name: pcmip-schema-registry
+    networks: [pcmip-internal]
+    depends_on:
+      kafka:
+        condition: service_healthy
+    environment:
+      SCHEMA_REGISTRY_HOST_NAME: schema-registry
+      SCHEMA_REGISTRY_KAFKASTORE_BOOTSTRAP_SERVERS: "kafka:9092"
+      SCHEMA_REGISTRY_LISTENERS: "http://0.0.0.0:8081"
+
+  redis:
+    image: redis:7.4-alpine
+    container_name: pcmip-redis
+    networks: [pcmip-internal]
+    command: redis-server --appendonly yes --maxmemory 4gb --maxmemory-policy allkeys-lru
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  minio:
+    image: minio/minio:latest
+    container_name: pcmip-minio
+    networks: [pcmip-internal, pcmip-external]
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: pcmip
+      MINIO_ROOT_PASSWORD: pcmip-local-secret
+    volumes:
+      - minio-data:/data
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  dask-scheduler:
+    image: ghcr.io/dask/dask:2024.11.2-py3.12
+    container_name: pcmip-dask-scheduler
+    networks: [pcmip-internal]
+    command: ["dask", "scheduler"]
+    ports:
+      - "8786:8786"
+      - "8787:8787"
+
+  dask-worker:
+    image: ghcr.io/dask/dask:2024.11.2-py3.12
+    networks: [pcmip-internal]
+    command: ["dask", "worker", "tcp://dask-scheduler:8786", "--nthreads", "4", "--memory-limit", "16GB"]
+    environment:
+      AWS_ACCESS_KEY_ID: pcmip
+      AWS_SECRET_ACCESS_KEY: pcmip-local-secret
+      AWS_ENDPOINT_URL: http://minio:9000
+    depends_on: [dask-scheduler]
+    deploy:
+      replicas: 4
+
+  marquez-db:
+    image: postgres:16-alpine
+    container_name: pcmip-marquez-db
+    networks: [pcmip-internal]
+    environment:
+      POSTGRES_USER: marquez
+      POSTGRES_PASSWORD: marquez
+      POSTGRES_DB: marquez
+    volumes:
+      - marquez-db-data:/var/lib/postgresql/data
+
+  marquez:
+    image: marquezproject/marquez:0.50.0
+    container_name: pcmip-marquez
+    networks: [pcmip-internal, pcmip-external]
+    environment:
+      MARQUEZ_PORT: "5000"
+      DATABASE_URL: "jdbc:postgresql://marquez-db:5432/marquez"
+      DATABASE_USER: marquez
+      DATABASE_PASSWORD: marquez
+    depends_on: [marquez-db]
+    ports:
+      - "5000:5000"
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile.api
+    container_name: pcmip-api
+    networks: [pcmip-internal, pcmip-external]
+    ports:
+      - "8000:8000"
+    environment:
+      KAFKA_BROKERS: kafka:9092
+      KAFKA_SCHEMA_REGISTRY_URL: http://schema-registry:8081
+      ZARR_STORE_URL: s3://pcmip-archive
+      AWS_ACCESS_KEY_ID: pcmip
+      AWS_SECRET_ACCESS_KEY: pcmip-local-secret
+      AWS_ENDPOINT_URL: http://minio:9000
+      REDIS_URL: redis://redis:6379/0
+      DASK_SCHEDULER: tcp://dask-scheduler:8786
+      MARQUEZ_URL: http://marquez:5000
+      API_KEY_SALT: local-dev-salt-not-for-production
+      CORS_ORIGINS: "http://localhost:3000,http://localhost:5173"
+      DEBUG: "true"
+    depends_on:
+      redis:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  ingestion-era5:
+    build:
+      context: .
+      dockerfile: Dockerfile.ingestion
+    container_name: pcmip-ingestion-era5
+    networks: [pcmip-internal]
+    command: ["python", "-m", "ingestion.adapters.era5_adapter"]
+    environment:
+      KAFKA_BROKERS: kafka:9092
+      ZARR_STORE_URL: s3://pcmip-archive
+      AWS_ACCESS_KEY_ID: pcmip
+      AWS_SECRET_ACCESS_KEY: pcmip-local-secret
+      AWS_ENDPOINT_URL: http://minio:9000
+      SOURCE_ID: era5
+      API_KEY_SALT: local-dev-salt-not-for-production
+    depends_on: [kafka, minio]
+
+  ws-server:
+    build:
+      context: ./realtime
+    container_name: pcmip-ws-server
+    networks: [pcmip-internal, pcmip-external]
+    ports:
+      - "8080:8080"
+    environment:
+      KAFKA_BROKERS: kafka:9092
+      PROMETHEUS_URL: http://prometheus:9090
+      WS_PORT: "8080"
+    depends_on: [kafka, prometheus]
+
+  prometheus:
+    image: prom/prometheus:v2.55.0
+    container_name: pcmip-prometheus
+    networks: [pcmip-internal]
+    volumes:
+      - ./config/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus-data:/prometheus
+    ports:
+      - "9090:9090"
+
+  grafana:
+    image: grafana/grafana:11.0.0
+    container_name: pcmip-grafana
+    networks: [pcmip-internal, pcmip-external]
+    environment:
+      GF_SECURITY_ADMIN_PASSWORD: pcmip-local
+    volumes:
+      - grafana-data:/var/lib/grafana
+    ports:
+      - "3001:3000"
+    depends_on: [prometheus]

@@ -1,0 +1,41 @@
+# requirements/api.txt
+# Python 3.12 — FastAPI application
+# Pin minor versions for reproducibility; allow patch updates
+
+# ── Web framework ───────────────────────────────────────────────────────────
+fastapi==0.115.6
+uvicorn[standard]==0.32.1
+pydantic==2.10.2
+pydantic-settings==2.6.1
+
+# ── Scientific data stack (MUST match ingestion/validation requirements) ─────
+xarray==2024.11.0
+zarr==3.0.1
+dask[distributed]==2024.11.2
+s3fs==2024.10.0
+fsspec==2024.10.0
+numpy==2.1.3
+scipy==1.14.1
+pandas==2.2.3
+
+# ── Kafka ───────────────────────────────────────────────────────────────────
+confluent-kafka==2.6.0
+
+# ── Redis ───────────────────────────────────────────────────────────────────
+redis[hiredis]==5.2.1
+
+# ── OpenLineage ─────────────────────────────────────────────────────────────
+openlineage-python==1.24.0
+
+# ── Observability ───────────────────────────────────────────────────────────
+structlog==24.4.0
+prometheus-client==0.21.0
+opentelemetry-api==1.28.4
+opentelemetry-sdk==1.28.4
+opentelemetry-exporter-otlp-proto-grpc==1.28.4
+opentelemetry-instrumentation-fastapi==0.49b4
+
+# ── Utilities ───────────────────────────────────────────────────────────────
+httpx==0.27.2         # async HTTP client (for Marquez API calls)
+python-multipart==0.0.19
+orjson==3.10.11       # fast JSON serialisation

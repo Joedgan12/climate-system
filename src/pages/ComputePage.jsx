@@ -3,15 +3,23 @@ import { useState, useEffect } from "react";
 const ComputePage = () => {
     const [jobs, setJobs] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
 
     useEffect(() => {
-        fetch('/api/compute/jobs')
-            .then(res => res.json())
+        fetch('/v2/status/compute/jobs')
+            .then(res => {
+                if (!res.ok) throw new Error(`HTTP ${res.status}`);
+                return res.json();
+            })
             .then(data => {
                 setJobs(data.jobs);
                 setLoading(false);
             })
-            .catch(err => console.error(err));
+            .catch(err => {
+                console.error(err);
+                setError(err.message);
+                setLoading(false);
+            });
     }, []);
 
     const statusColor = (s) => ({ running: "var(--teal-600)", queued: "var(--amber)", complete: "var(--gray-400)", failed: "var(--red)" }[s]);
@@ -76,6 +84,8 @@ const ComputePage = () => {
                         <tbody>
                             {loading ? (
                                 <tr><td colSpan="7" style={{ padding: 32, textAlign: "center", color: "var(--gray-500)" }}>Loading jobs from cluster API...</td></tr>
+                            ) : error ? (
+                                <tr><td colSpan="7" style={{ padding: 32, textAlign: "center", color: "var(--red)" }}>Error: {error}</td></tr>
                             ) : jobs.map((j) => (
                                 <tr key={j.id} style={{ borderBottom: "1px solid var(--gray-100)", transition: "background 0.15s" }}
                                     onMouseEnter={e => e.currentTarget.style.background = "var(--teal-50)"}

@@ -4,15 +4,23 @@ import RatingBadge from "../components/RatingBadge";
 const ValidationPage = () => {
     const [models, setModels] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
 
     useEffect(() => {
-        fetch('/api/validation/models')
-            .then(res => res.json())
+        fetch('/v2/status/validation/models')
+            .then(res => {
+                if (!res.ok) throw new Error(`HTTP ${res.status}`);
+                return res.json();
+            })
             .then(data => {
                 setModels(data.models);
                 setLoading(false);
             })
-            .catch(err => console.error(err));
+            .catch(err => {
+                console.error(err);
+                setError(err.message);
+                setLoading(false);
+            });
     }, []);
 
     return (
@@ -50,6 +58,8 @@ const ValidationPage = () => {
                         <tbody>
                             {loading ? (
                                 <tr><td colSpan="7" style={{ padding: 32, textAlign: "center", color: "var(--gray-500)" }}>Loading registry from validation server...</td></tr>
+                            ) : error ? (
+                                <tr><td colSpan="7" style={{ padding: 32, textAlign: "center", color: "var(--red)" }}>Error: {error}</td></tr>
                             ) : models.map((m, i) => (
                                 <tr key={m.name} style={{ borderBottom: "1px solid var(--gray-100)", background: i % 2 === 0 ? "white" : "var(--gray-50)" }}
                                     onMouseEnter={e => e.currentTarget.style.background = "var(--teal-50)"}

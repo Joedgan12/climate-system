@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 const APIPage = () => {
     const [activeEndpoint, setActiveEndpoint] = useState(0);
@@ -6,6 +6,8 @@ const APIPage = () => {
     const [responsePayload, setResponsePayload] = useState(null);
     const [loading, setLoading] = useState(false);
     const [executeTime, setExecuteTime] = useState(0);
+    const [userParams, setUserParams] = useState("");
+    const [customHeader, setCustomHeader] = useState("");
 
     const endpoints = [
         {
@@ -30,15 +32,44 @@ const APIPage = () => {
 
     const ep = endpoints[activeEndpoint];
 
+    // keep editable params in sync when endpoint changes
+    useEffect(() => {
+        setUserParams(ep.params);
+    }, [ep]);
+
     const executeRequest = async () => {
         setLoading(true);
         setShowResponse(false);
 
-        // In a real scenario we would pass the params properly, 
-        // but here we just hit our actual Express mock endpoint
+        // build params object from userParams textarea
+        // include custom header if present
+        if (customHeader) {
+            const [hName, hVal] = customHeader.split(":");
+            if (hName && hVal) {
+                options.headers = { ...(options.headers||{}), [hName.trim()]: hVal.trim() };
+            }
+        }
+        const pairs = userParams.split("\n").map(l => l.trim()).filter(l => l && l.includes("="));
+        const paramsObj = {};
+        for (const p of pairs) {
+            const [k, ...rest] = p.split("=");
+            paramsObj[k.trim()] = rest.join("=").trim();
+        }
+
+        let url = ep.path;
+        const options = { ...ep.fetchOptions };
+        if (ep.fetchOptions.method === "GET") {
+            const search = new URLSearchParams(paramsObj);
+            if ([...search].length) url += `?${search.toString()}`;
+        } else {
+            // default to form data
+            options.headers = { ...(options.headers || {}), "Content-Type": "application/x-www-form-urlencoded" };
+            options.body = new URLSearchParams(paramsObj).toString();
+        }
+
         const startTime = performance.now();
         try {
-            const res = await fetch(ep.path, ep.fetchOptions);
+            const res = await fetch(url, options);
             const data = await res.json();
             setResponsePayload(JSON.stringify(data, null, 2));
         } catch (err) {
@@ -102,13 +133,14 @@ const APIPage = () => {
                                         <span style={{ color: "#ffa07a" }}>{ep.method}</span>{" "}
                                         <span style={{ color: "#87ceeb" }}>https://api.pcmip.earth{ep.path}</span>
                                     </div>
-                                    {ep.params.split("\n").map((line, i) => (
-                                        <div key={i} style={{ fontFamily: "var(--font-mono)", fontSize: 12, color: "#888", lineHeight: 1.8 }}>
-                                            <span style={{ color: "#a0c4a0" }}>{line.split("=")[0]}</span>
-                                            <span style={{ color: "#555" }}>=</span>
-                                            <span style={{ color: "#f0c070" }}>{line.split("=")[1]}</span>
-                                        </div>
-                                    ))}
+                                    <textarea
+                                        value={userParams}
+                                        onChange={e => setUserParams(e.target.value)}
+                                        style={{ width: "100%", height: 120, background: "#111", color: "#ccc", fontFamily: "var(--font-mono)", fontSize: 12, padding: 12, borderRadius: 6, border: "1px solid #222", marginBottom: 12 }}
+                                    />
+                                    <div style={{ fontSize: 11, color: "#555", marginBottom: 8 }}>
+                                        Edit parameters (key=value per line). GET requests append these as query string; POST uses x-www-form-urlencoded body.
+                                    </div>
                                 </div>
                             </div>
                             <button onClick={executeRequest} disabled={loading} style={{

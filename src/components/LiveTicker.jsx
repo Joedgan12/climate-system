@@ -4,10 +4,43 @@ const LiveTicker = () => {
     const [items, setItems] = useState([]);
 
     useEffect(() => {
-        fetch('/api/ticker')
-            .then(res => res.json())
-            .then(data => setItems(data.items))
-            .catch(err => console.error(err));
+        // try WebSocket first
+        let ws;
+        try {
+            ws = new WebSocket((location.protocol === 'https:' ? 'wss' : 'ws') + '://' + location.hostname + ':8080');
+            ws.onopen = () => {
+                // subscribe to a couple of example channels
+                ['system.health', 'ingest.live', 'compute.jobs'].forEach(ch => {
+                    ws.send(JSON.stringify({ action: 'subscribe', channel: ch }));
+                });
+            };
+            ws.onmessage = (ev) => {
+                try {
+                    const msg = JSON.parse(ev.data);
+                    // push a compact string representation for display
+                    if (msg.channel) {
+                        const summary = msg.channel + ": " + JSON.stringify(msg.data);
+                        setItems(prev => [...prev.slice(-9), summary]);
+                    }
+                } catch (e) {
+                    console.warn('WS parse error', e);
+                }
+            };
+            ws.onerror = (e) => console.warn('WS error', e);
+        } catch (e) {
+            console.warn('WebSocket failed, falling back to HTTP', e);
+        }
+
+        if (!ws) {
+            fetch('/api/ticker')
+                .then(res => res.json())
+                .then(data => setItems(data.items))
+                .catch(err => console.error(err));
+        }
+
+        return () => {
+            if (ws) ws.close();
+        };
     }, []);
 
     if (!items.length) return null;

@@ -7,11 +7,18 @@ export default defineConfig({
   server: {
     proxy: {
       '/api': {
-        target: 'http://127.0.0.1:3000',
+        // API Gateway (FastAPI) default port
+        target: 'http://127.0.0.1:8000',
         changeOrigin: true,
       },
       '/v2': {
-        target: 'http://127.0.0.1:3000',
+        target: 'http://127.0.0.1:8000',
+        changeOrigin: true,
+      },
+      // optional: proxy websocket realtime server
+      '/ws': {
+        target: 'ws://127.0.0.1:8080',
+        ws: true,
         changeOrigin: true,
       },
     }
