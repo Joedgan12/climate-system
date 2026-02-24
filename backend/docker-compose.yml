@@ -70,8 +70,8 @@ services:
     networks: [pcmip-internal, pcmip-external]
     command: server /data --console-address ":9001"
     environment:
-      MINIO_ROOT_USER: pcmip
-      MINIO_ROOT_PASSWORD: pcmip-local-secret
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
     volumes:
       - minio-data:/data
     ports:
@@ -97,8 +97,8 @@ services:
     networks: [pcmip-internal]
     command: ["dask", "worker", "tcp://dask-scheduler:8786", "--nthreads", "4", "--memory-limit", "16GB"]
     environment:
-      AWS_ACCESS_KEY_ID: pcmip
-      AWS_SECRET_ACCESS_KEY: pcmip-local-secret
+      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID}
+      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY}
       AWS_ENDPOINT_URL: http://minio:9000
     depends_on: [dask-scheduler]
     deploy:
@@ -109,9 +109,9 @@ services:
     container_name: pcmip-marquez-db
     networks: [pcmip-internal]
     environment:
-      POSTGRES_USER: marquez
-      POSTGRES_PASSWORD: marquez
-      POSTGRES_DB: marquez
+      POSTGRES_USER: ${MARQUEZ_POSTGRES_USER}
+      POSTGRES_PASSWORD: ${MARQUEZ_POSTGRES_PASSWORD}
+      POSTGRES_DB: ${MARQUEZ_POSTGRES_DB}
     volumes:
       - marquez-db-data:/var/lib/postgresql/data
 
@@ -121,9 +121,9 @@ services:
     networks: [pcmip-internal, pcmip-external]
     environment:
       MARQUEZ_PORT: "5000"
-      DATABASE_URL: "jdbc:postgresql://marquez-db:5432/marquez"
-      DATABASE_USER: marquez
-      DATABASE_PASSWORD: marquez
+      DATABASE_URL: "jdbc:postgresql://marquez-db:5432/${MARQUEZ_POSTGRES_DB}"
+      DATABASE_USER: ${MARQUEZ_POSTGRES_USER}
+      DATABASE_PASSWORD: ${MARQUEZ_POSTGRES_PASSWORD}
     depends_on: [marquez-db]
     ports:
       - "5000:5000"
@@ -140,13 +140,13 @@ services:
       KAFKA_BROKERS: kafka:9092
       KAFKA_SCHEMA_REGISTRY_URL: http://schema-registry:8081
       ZARR_STORE_URL: s3://pcmip-archive
-      AWS_ACCESS_KEY_ID: pcmip
-      AWS_SECRET_ACCESS_KEY: pcmip-local-secret
+      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID}
+      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY}
       AWS_ENDPOINT_URL: http://minio:9000
       REDIS_URL: redis://redis:6379/0
       DASK_SCHEDULER: tcp://dask-scheduler:8786
       MARQUEZ_URL: http://marquez:5000
-      API_KEY_SALT: local-dev-salt-not-for-production
+      API_KEY_SALT: ${API_KEY_SALT}
       CORS_ORIGINS: "http://localhost:3000,http://localhost:5173"
       DEBUG: "true"
     depends_on:
@@ -170,11 +170,11 @@ services:
     environment:
       KAFKA_BROKERS: kafka:9092
       ZARR_STORE_URL: s3://pcmip-archive
-      AWS_ACCESS_KEY_ID: pcmip
-      AWS_SECRET_ACCESS_KEY: pcmip-local-secret
+      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID}
+      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY}
       AWS_ENDPOINT_URL: http://minio:9000
       SOURCE_ID: era5
-      API_KEY_SALT: local-dev-salt-not-for-production
+      API_KEY_SALT: ${API_KEY_SALT}
     depends_on: [kafka, minio]
 
   ws-server:
@@ -205,7 +205,7 @@ services:
     container_name: pcmip-grafana
     networks: [pcmip-internal, pcmip-external]
     environment:
-      GF_SECURITY_ADMIN_PASSWORD: pcmip-local
+      GF_SECURITY_ADMIN_PASSWORD: ${GF_SECURITY_ADMIN_PASSWORD}
     volumes:
       - grafana-data:/var/lib/grafana
     ports:
