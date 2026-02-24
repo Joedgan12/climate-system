@@ -38,7 +38,7 @@ BatchSpanProcessor = None
 
 from config.settings import get_settings
 from api.models.schemas import PCMIPError
-from api.routers import climate, ensemble, models, lineage, status
+from api.routers import climate, status, ensemble, models, lineage, dashboard, keys, admin
 
 settings = get_settings()
 
@@ -87,17 +87,39 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
 
     # Dask & Redis connections are optional for demo; skip if packages absent
     if DaskClient:
-        log.info("connecting_to_dask", scheduler=settings.dask_scheduler)
-        app_state.dask_client = await DaskClient(
-            settings.dask_scheduler,
-            asynchronous=True,
-            name="pcmip-api",
-            timeout=30,
-        )
-        log.info("dask_connected", workers=len(app_state.dask_client.scheduler_info()["workers"]))
+        try:
+            log.info("connecting_to_dask", scheduler=settings.dask_scheduler)
+            app_state.dask_client = await DaskClient(
+                settings.dask_scheduler,
+                asynchronous=True,
+                name="pcmip-api",
+                timeout=30,
+            )
+            try:
+                workers = len(app_state.dask_client.scheduler_info()["workers"])
+            except Exception:
+                workers = 0
+            log.info("dask_connected", workers=workers)
+
+            # patch client to ignore unknown report types (e.g. adjust-heartbeat-interval)
+            try:
+                import distributed.client as _dc
+                orig = _dc.Client._handle_report
+                def _safe_handle(self, op, msg):
+                    try:
+                        return orig(self, op, msg)
+                    except KeyError:
+                        log.info("dask_ignored_report", op=op)
+                _dc.Client._handle_report = _safe_handle
+            except Exception:
+                pass
+        except Exception as e:
+            log.info("dask_not_available", error=str(e))
+            app_state.dask_client = None
     else:
         log.info("dask_not_available")
 
+    # Redis connection handled independently
     if aioredis:
         log.info("connecting_to_redis", url=settings.redis_url)
         app_state.redis = await aioredis.from_url(
@@ -248,11 +270,14 @@ def create_app() -> FastAPI:
 
     # ── ROUTERS ───────────────────────────────────────────────────────────────
     app.include_router(climate.router, prefix="/v2/climate", tags=["Climate Data"])
-    app.include_router(ensemble.router, prefix="/v2/ensemble", tags=["Ensemble"])
-    app.include_router(models.router, prefix="/v2/models", tags=["Model Validation"])
-    app.include_router(lineage.router, prefix="/v2/lineage", tags=["Lineage"])
-    # temporary dashboard paths used by front-end
-    app.include_router(dashboard.router, prefix="/api", tags=["Dashboard"])
+    app.include_router(status.router, prefix="/v2/status", tags=["Status"])
+    # include stubs for other functionality
+    app.include_router(ensemble.router, prefix="/v2/ensemble")
+    app.include_router(models.router, prefix="/v2/models")
+    app.include_router(lineage.router, prefix="/v2/lineage")
+    app.include_router(dashboard.router, prefix="/v2/dashboard")
+    app.include_router(keys.router)  # api key helpers
+    app.include_router(admin.router)  # admin UI support (upload + keys)
 
     # ── OTEL INSTRUMENTATION ─────────────────────────────────────────────────
     # FastAPIInstrumentor.instrument_app(app)  # disabled

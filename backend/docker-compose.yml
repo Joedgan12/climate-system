@@ -84,7 +84,7 @@ services:
       retries: 3
 
   dask-scheduler:
-    image: ghcr.io/dask/dask:2024.11.2-py3.12
+    image: daskdev/dask:latest
     container_name: pcmip-dask-scheduler
     networks: [pcmip-internal]
     command: ["dask", "scheduler"]
@@ -93,7 +93,7 @@ services:
       - "8787:8787"
 
   dask-worker:
-    image: ghcr.io/dask/dask:2024.11.2-py3.12
+    image: daskdev/dask:latest
     networks: [pcmip-internal]
     command: ["dask", "worker", "tcp://dask-scheduler:8786", "--nthreads", "4", "--memory-limit", "16GB"]
     environment:

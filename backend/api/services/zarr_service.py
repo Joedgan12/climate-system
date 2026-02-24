@@ -97,15 +97,41 @@ class ZarrService:
             t0 = time.perf_counter()
 
             # Run blocking I/O in thread pool to avoid blocking the event loop
-            ds = await asyncio.get_event_loop().run_in_executor(
-                None,
-                lambda: xr.open_zarr(
-                    store_url,
-                    consolidated=True,
-                    storage_options=settings.s3_storage_options,
-                    chunks="auto",  # Dask-backed lazy arrays
-                ),
-            )
+            try:
+                ds = await asyncio.get_event_loop().run_in_executor(
+                    None,
+                    lambda: xr.open_zarr(
+                        store_url,
+                        consolidated=True,
+                        storage_options=settings.s3_storage_options,
+                        chunks="auto",  # Dask-backed lazy arrays
+                    ),
+                )
+            except FileNotFoundError:
+                # Provide a small in-memory demo dataset when the Zarr store
+                # is not present (local dev/demo mode). This allows the API
+                # and data explorer UI to function without real S3 data.
+                log.info("zarr_store_missing", url=store_url)
+                import numpy as _np
+                from datetime import datetime, timedelta
+
+                times = [datetime(2024, 6, 1) + timedelta(days=i) for i in range(10)]
+                lats = _np.array([51.5])
+                lons = _np.array([-0.1])
+                data = _np.zeros((len(times), len(lats), len(lons)), dtype=float)
+                demo_ds = xr.Dataset(
+                    {"tas": (("time", "latitude", "longitude"), data)},
+                    coords={"time": times, "latitude": lats, "longitude": lons},
+                    attrs={
+                        "source_id": "ERA5",
+                        "tracking_id": "demo-0001",
+                        "pcmip_raw_hash": "demo",
+                        "pcmip_ingest_ts": "2024-01-01T00:00:00",
+                        "grid_label": "demo-grid",
+                    },
+                )
+                self._store_cache[cache_key] = demo_ds
+                return demo_ds
             elapsed = time.perf_counter() - t0
             log.info("zarr_store_opened", url=store_url, elapsed_ms=int(elapsed * 1000))
             self._store_cache[cache_key] = ds

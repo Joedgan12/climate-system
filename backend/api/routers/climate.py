@@ -12,6 +12,8 @@ from datetime import datetime
 from typing import Optional
 
 import numpy as np
+import pandas as pd
+from datetime import datetime
 import structlog
 from fastapi import APIRouter, Depends, HTTPException, Query
 from fastapi.responses import JSONResponse
@@ -273,16 +275,22 @@ async def get_timeseries(
     from api.services.zarr_service import CF_UNITS
     unit = CF_UNITS.get(variable, "1")
 
-    data_points = [
-        TimeseriesPoint(
-            time=ts.item(),
-            value=float(val),
-            uncertainty=_derive_uncertainty(float(val), variable),
-            quality_flags=[QualityFlag.VALID] if not np.isnan(float(val)) else [QualityFlag.NEAR_BOUNDARY],
+    # Convert all times to Python datetimes via pandas to avoid numpy datetime issues
+    times_py = pd.to_datetime(da.time.values).to_pydatetime()
+    data_points = []
+    for ts, val in zip(times_py, da.values):
+        if np.isnan(float(val)):
+            continue
+        # Ensure time is serialisable by Pydantic: use ISO string which will be parsed
+        time_iso = pd.to_datetime(ts).isoformat()
+        data_points.append(
+            TimeseriesPoint(
+                time=time_iso,
+                value=float(val),
+                uncertainty=_derive_uncertainty(float(val), variable),
+                quality_flags=[QualityFlag.VALID],
+            )
         )
-        for ts, val in zip(da.time.values, da.values)
-        if not np.isnan(float(val))
-    ]
 
     response = TimeseriesResponse(
         variable=variable,

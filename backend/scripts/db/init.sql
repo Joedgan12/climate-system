@@ -52,6 +52,14 @@ CREATE TABLE api_keys (
 
 CREATE INDEX idx_api_keys_hash ON api_keys (key_hash) WHERE NOT revoked;
 
+-- example key for local development (raw value "dev-key-0001")
+INSERT INTO organisations (name, contact_email, country) VALUES ('Demo Org','demo@example.org','US');
+INSERT INTO api_keys (org_id, key_hash, tier) VALUES (
+    (SELECT org_id FROM organisations WHERE name='Demo Org'),
+    '539e613ccad3c5d55c23d43df0f9751af27ca132b8c961d1e6c8ccd38cd0fd36',
+    'research'
+);
+
 -- ─────────────────────────────────────────────────────────────────────────────
 -- DATA SOURCES
 -- ─────────────────────────────────────────────────────────────────────────────

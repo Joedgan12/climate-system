@@ -9,6 +9,14 @@ const APIPage = () => {
     const [userParams, setUserParams] = useState("");
     const [customHeader, setCustomHeader] = useState("");
 
+    // API key creation state
+    const [apiKey, setApiKey] = useState("");
+    const [apiTier, setApiTier] = useState("research");
+    const [apiOrg, setApiOrg] = useState("");
+    const [createLoading, setCreateLoading] = useState(false);
+    const [storedKeys, setStoredKeys] = useState([]);
+    const [uploadResult, setUploadResult] = useState(null);
+
     const endpoints = [
         {
             method: "GET", path: "/v2/climate/variable",
@@ -36,6 +44,71 @@ const APIPage = () => {
     useEffect(() => {
         setUserParams(ep.params);
     }, [ep]);
+
+    const createKey = async () => {
+        setCreateLoading(true);
+        setApiKey("");
+        try {
+            const res = await fetch("/v2/admin/keys", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ tier: apiTier, org_id: apiOrg || null }),
+            });
+            const data = await res.json();
+            if (res.ok) {
+                setApiKey(data.api_key);
+            } else {
+                setApiKey(`error: ${JSON.stringify(data)}`);
+            }
+        } catch (err) {
+            setApiKey(`error: ${err.message}`);
+        } finally {
+            setCreateLoading(false);
+        }
+    };
+
+    // upload handler
+    const uploadZarr = async () => {
+        const fileInput = document.getElementById("zarr-file");
+        const destInput = document.getElementById("zarr-dest");
+        if (!fileInput.files.length) return;
+        const file = fileInput.files[0];
+        const dest = destInput.value.trim();
+        if (!dest) return;
+        const form = new FormData();
+        form.append("file", file);
+        form.append("dest_path", dest);
+        try {
+            const res = await fetch("/v2/admin/upload", { method: "POST", body: form });
+            const data = await res.json();
+            setUploadResult(data);
+            setResponsePayload(JSON.stringify(data, null, 2));
+            setShowResponse(true);
+        } catch (err) {
+            const errObj = { error: err.message };
+            setUploadResult(errObj);
+            setResponsePayload(JSON.stringify(errObj, null, 2));
+            setShowResponse(true);
+        }
+    };
+
+    const fetchKeys = async () => {
+        try {
+            const res = await fetch("/v2/admin/keys", { headers: { "X-API-Key": apiKey || "" } });
+            if (res.ok) {
+                const data = await res.json();
+                setStoredKeys(data.stored_keys || []);
+            }
+        } catch {
+            // ignore
+        }
+    };
+
+    // attach upload button
+    useEffect(() => {
+        const btn = document.getElementById("upload-btn");
+        if (btn) btn.onclick = uploadZarr;
+    }, []);
 
     const executeRequest = async () => {
         setLoading(true);
@@ -92,6 +165,59 @@ const APIPage = () => {
                         <p style={{ fontSize: 15, color: "var(--gray-600)", lineHeight: 1.8, marginBottom: 28 }}>
                             Every response carries uncertainty bounds, provenance IDs, and CMIP7 metadata. The API most climate institutions don't have yet.
                         </p>
+                        {/* API key creation form */}
+                        <div style={{ background: "var(--teal-50)", padding: 16, borderRadius: 12, marginBottom: 28 }}>
+                            <h3 style={{ margin: 0, fontSize: 18, color: "var(--teal-900)" }}>Generate API key</h3>
+                            <div style={{ display: "flex", gap: 8, marginTop: 8, alignItems: "center" }}>
+                                <label style={{ fontSize: 12 }}>Tier:</label>
+                                <select value={apiTier} onChange={e => setApiTier(e.target.value)} style={{ fontSize: 12 }}>
+                                    <option value="research">research</option>
+                                    <option value="institutional">institutional</option>
+                                    <option value="sovereign">sovereign</option>
+                                </select>
+                                <label style={{ fontSize: 12 }}>Org ID (optional):</label>
+                                <input
+                                    value={apiOrg}
+                                    onChange={e => setApiOrg(e.target.value)}
+                                    type="text" style={{ fontSize: 12 }}
+                                />
+                                <button
+                                    onClick={createKey}
+                                    disabled={createLoading}
+                                    style={{ padding: "4px 12px", fontSize: 12 }}
+                                >
+                                    {createLoading ? "..." : "Create"}
+                                </button>
+                            </div>
+                            <div style={{ marginTop: 8, fontFamily: "var(--font-mono)", fontSize: 12, display: "flex", alignItems: "center", gap: 8 }}>
+                                {apiKey && (
+                                    <>
+                                        <span>New key: <strong>{apiKey}</strong></span>
+                                        <button onClick={() => navigator.clipboard.writeText(apiKey)} style={{ fontSize: 10 }}>Copy</button>
+                                    </>
+                                )}
+                            </div>
+                            <button onClick={fetchKeys} style={{ marginTop: 8, fontSize: 12, padding: "4px 10px" }}>
+                                Refresh stored key list
+                            </button>
+                            {storedKeys.length > 0 && (
+                                <ul style={{ fontFamily: "var(--font-mono)", fontSize: 11, marginTop: 8 }}>
+                                    {storedKeys.map(k => <li key={k}>{k}</li>)}
+                                </ul>
+                            )}
+                            {/* zarr upload */}
+                            <div style={{ marginTop: 16, borderTop: "1px solid #ccc", paddingTop: 16 }}>
+                                <h4 style={{ margin: 0, fontSize: 16 }}>Upload Zarr archive</h4>
+                                <input type="file" id="zarr-file" style={{ marginTop: 8 }} />
+                                <div style={{ marginTop: 8 }}>
+                                    <label style={{ fontSize: 12 }}>Destination prefix:</label>
+                                    <input type="text" id="zarr-dest" style={{ fontSize: 12, width: 240 }} placeholder="zarr/obs/era5/new" />
+                                </div>
+                                <button id="upload-btn" style={{ marginTop: 8, fontSize: 12, padding: "4px 10px" }}>
+                                    Upload
+                                </button>
+                            </div>
+                        </div>
                         <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
                             {endpoints.map((ep, i) => (
                                 <button key={ep.path} onClick={() => { setActiveEndpoint(i); setShowResponse(false); }} style={{

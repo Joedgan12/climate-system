@@ -7,8 +7,8 @@ const TimeseriesPage = () => {
         variable: "air_temperature",
         start: "2024-06-01",
         end: "2024-06-05",
-        level: "surface",
-        aggregate: "NONE",
+        level: "",            // leave empty unless numeric
+        aggregate: "none",    // lower-case default
     });
     const [result, setResult] = useState(null);
     const [loading, setLoading] = useState(false);
@@ -23,10 +23,27 @@ const TimeseriesPage = () => {
         setLoading(true);
         setError(null);
         setResult(null);
-        const search = new URLSearchParams(params).toString();
+
+        // build query string manually so we can normalise certain values
+        const searchParams = new URLSearchParams();
+        Object.entries(params).forEach(([k, v]) => {
+            if (!v) return;
+            let val = v;
+            if (k === "aggregate") val = v.toLowerCase();
+            if (k === "level") {
+                // only send numeric pressure levels, omit "surface"
+                if (val.toLowerCase() === "surface") return;
+            }
+            searchParams.append(k, val);
+        });
+        const search = searchParams.toString();
+
         try {
             const res = await fetch(`/v2/climate/timeseries?${search}`);
-            if (!res.ok) throw new Error(`HTTP ${res.status}`);
+            if (!res.ok) {
+                const txt = await res.text();
+                throw new Error(`HTTP ${res.status}: ${txt}`);
+            }
             const data = await res.json();
             setResult(data);
         } catch (e) {

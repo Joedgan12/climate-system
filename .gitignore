@@ -22,3 +22,22 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Environment / Secrets
+.env
+.env.*
+secrets/
+/secrets/
+*.pem
+*.key
+*.crt
+
+# Vite / build cache
+node_modules/.vite
+.vite
+
+# Python artifacts
+__pycache__/
+*.pyc
+venv/
+

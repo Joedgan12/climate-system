@@ -99,11 +99,18 @@ const Thermometer3D = ({ currentTemp, minTemp, maxTemp }) => {
 
 // ─── MAIN OVERLAY COMPONENT ──────────────────────────────────────────────────
 
-const Thermometer = ({ height = 300 }) => {
-    const [current, setCurrent] = useState(1.42);
+const Thermometer = ({ height = 300, current: propCurrent }) => {
+    // initialize with the prop if provided, otherwise a sensible default
+    const [current, setCurrent] = useState(propCurrent !== undefined ? propCurrent : 1.42);
 
-    // Poll the API for live data every 1 second
+    // Poll the API for live data every 1 second, but only when no explicit value is passed
     useEffect(() => {
+        if (propCurrent !== undefined) {
+            // if the parent is controlling the temperature, keep state in sync
+            setCurrent(propCurrent);
+            return;
+        }
+
         const fetchTemp = async () => {
             try {
                 // Ensure we use the full proxied path or direct IP to be safe
@@ -117,7 +124,7 @@ const Thermometer = ({ height = 300 }) => {
         fetchTemp();
         const interval = setInterval(fetchTemp, 1000);
         return () => clearInterval(interval);
-    }, []);
+    }, [propCurrent]);
 
     return (
         <div style={{ display: "flex", alignItems: "flex-end", gap: 24, height }}>

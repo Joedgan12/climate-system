@@ -202,10 +202,17 @@ class VariableResponse(BaseModel):
 
 
 class TimeseriesPoint(BaseModel):
-    time: datetime
+    # time may be a datetime or ISO string; validator will coerce
+    time: Union[datetime, str]
     value: float
     uncertainty: Uncertainty
     quality_flags: List[QualityFlag] = Field(default_factory=list)
+
+    @field_validator("time", mode="before")
+    def parse_time(cls, v):
+        if isinstance(v, str):
+            return datetime.fromisoformat(v)
+        return v
 
 
 class TimeseriesResponse(BaseModel):

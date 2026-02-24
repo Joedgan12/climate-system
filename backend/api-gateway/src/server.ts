@@ -166,12 +166,20 @@ async function callDownstream<T>(
       signal:  controller.signal,
     });
 
+    const text = await response.text();
+
     if (!response.ok) {
-      const errorText = await response.text();
-      throw new Error(`Downstream ${url} responded ${response.status}: ${errorText}`);
+      // include whatever the downstream returned (could be plain text or JSON)
+      throw new Error(`Downstream ${url} responded ${response.status}: ${text}`);
     }
 
-    return (await response.json()) as T;
+    try {
+      return JSON.parse(text) as T;
+    } catch (parseErr) {
+      throw new Error(
+        `Downstream ${url} returned invalid JSON: ${(parseErr as Error).message}. Raw response: ${text}`
+      );
+    }
   } catch (err) {
     if ((err as Error).name === "AbortError") {
       throw new Error(`Downstream ${url} timed out after ${timeout}ms`);
@@ -379,7 +387,20 @@ async function buildServer(): Promise<FastifyInstance> {
         ...(ensemble  && { ensemble }),
       });
 
-      const result = await callDownstream<unknown>(queryUrl, "GET", undefined, CONFIG.timeouts.timeseries);
+      let result: unknown;
+      try {
+        result = await callDownstream<unknown>(queryUrl, "GET", undefined, CONFIG.timeouts.timeseries);
+      } catch (err) {
+        console.error("[gateway] timeseries downstream error:", err);
+        // propagate a JSON-friendly error to the client so the frontend can
+        // show the underlying message instead of a blank 500 body
+        return reply.status(502).send({
+          error: "downstream_failure",
+          message: (err as Error).message,
+          request_id: requestId,
+          timestamp: new Date().toISOString(),
+        });
+      }
       setPCMIPHeaders(reply);
       return reply.send(result);
     });

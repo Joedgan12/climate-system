@@ -2,6 +2,31 @@
 
 This repository contains a React + Vite front-end and a full-featured backend.
 
+## Development shortcuts
+
+- Seed MinIO with a tiny sample Zarr store so the API can return data without
+  connecting to external S3:
+
+  ```powershell
+  cd backend
+  python scripts/populate_minio.py
+  ```
+
+- Upload your own Zarr archives via the admin UI (see *API → Generate API key*
+  page) or by posting to `/v2/admin/upload`.
+  The form accepts a file and a destination prefix under `pcmip-archive/`,
+  e.g. `zarr/obs/era5/my_data`.
+
+- Generate API keys either via the UI (API page) or by posting JSON to
+  `/v2/admin/keys`:
+
+  ```bash
+  curl -X POST "http://localhost:8000/v2/admin/keys" \
+       -H "Content-Type: application/json" \
+       -d '{"tier":"research"}'
+  ```
+
+
 The original simple Express mock server has been replaced with an advanced backend located in the `backend/` directory. See [`backend/README.md`](backend/README.md) for instructions on setting up and running the backend services.
 
 The front-end now includes an **API Explorer** under "API" which lets you type or edit parameters for the `/v2` endpoints, and a dedicated "Timeseries" page for `/v2/climate/timeseries` lookups. Live telemetry (ingestion/compute/validation) is streamed over WebSocket and displayed by the ticker at the top — a connection is made to `ws://localhost:8080` and the dashboard subscribes to health/events.
